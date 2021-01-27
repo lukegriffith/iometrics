@@ -4,12 +4,13 @@ metadata:
   name: {{ include "iometrics.fullname" . }}
   labels:
     {{- include "iometrics.labels" . | nindent 4 }}
+    servicemonitor: "true"
 spec:
   type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.service.port }}
-      targetPort: http
+      targetPort: 8080
       protocol: TCP
-      name: http
+      name: metrics
   selector:
     {{- include "iometrics.selectorLabels" . | nindent 4 }}

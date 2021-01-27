@@ -1,14 +1,25 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ include "iometrics.fullname" . }}
   labels:
     {{- include "iometrics.labels" . | nindent 4 }}
 spec:
+  serviceName: "sqlmetrics"
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
       {{- include "iometrics.selectorLabels" . | nindent 6 }}
+  volumeClaimTemplates:
+  - metadata:
+      name: sql-data
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: {{ .Values.storageClass }}
+      resources:
+        requests:
+          storage: {{ .Values.storageSize }}
   template:
     metadata:
       labels:
@@ -23,22 +34,29 @@ spec:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
+          workingDir: /mnt/sql
+          command: ["/root/app"]
+          args: 
+            {{- toYaml .Values.args | nindent 12  }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
+          image: "{{ .Values.image.repository }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: 80
+              containerPort: 8080
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: /
+              path: /metrics
               port: http
           readinessProbe:
             httpGet:
-              path: /
+              path: /metrics
               port: http
+          volumeMounts:
+            - name: sql-data
+              mountPath: /mnt/sql
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}

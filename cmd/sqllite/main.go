@@ -29,7 +29,10 @@ func main() {
 	flag.Parse()
 
 	if *recoverPtr {
-		os.Remove("sqlite-database.db") // I delete the file to avoid duplicated records.
+		err := os.Remove("sqlite-database.db") // I delete the file to avoid duplicated records.
+		if err != nil {
+			log.Println("no database file present.")
+		}
 	}
 
 	insertWait := time.Duration(*insertWaitPtr)
@@ -60,7 +63,10 @@ func main() {
 	for true {
 
 		if *cleanPtr {
-			os.Remove("sqlite-database.db") // I delete the file to avoid duplicated records.
+			err := os.Remove("sqlite-database.db") // I delete the file to avoid duplicated records.
+			if err != nil {
+				log.Println("no database file present.")
+			}
 		}
 		// sqllite creation
 		log.Println("Creating sqlite-database.db...")

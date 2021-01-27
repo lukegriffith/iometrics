@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    serviceapp: sqlmetrics
+  name: {{ include "iometrics.serviceAccountName" . }}
+spec:
+  endpoints:
+    - interval: 15s
+      port: metrics
+  namespaceSelector:
+    matchNames:
+    - sqlmetrics
+  selector:
+    matchLabels:
+      servicemonitor: "true"
